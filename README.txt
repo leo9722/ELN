@@ -1,13 +1,31 @@
-pour faire donctionner l'interface web :
+# Projet Linux Embarqué 
+  
+  Réalisation d'une passerelle domotique 433.93MHz permettant de pîloter par liaison radio des objets connectés.
 
-install apache2 + php + libeapache2-mod-php
 
-mettre le fic ./domotik dans /var/wwww/html/domo
+# INSTALLATION
 
+Pour faire fonctionner l'interface web :
+
+```bash
+apt-get install apache2  php  libeapache2-mod-php
+```
+puis
+
+```bash
+mv  ./domotik dans /var/wwww/html/domo
+```
+
+
+```bash
 adduser www-data root
 chown -R root:www-data à domo
+```
 
-sudo visudo /etc/sudoers :
+configuration des droits sudoers :
+
+```bash 
+sudo visudo /etc/sudoers 
 
 
 # User privilege specification
@@ -17,7 +35,16 @@ root    ALL=(ALL:ALL) ALL
 %sudo   ALL=(ALL:ALL) ALL
 www-data        ALL=(ALL) NOPASSWD:ALL
 
+```
 
-et mettre ces privileges
 
-enfin restart le server et debug avec tail -f /var/log/apache2/error.log si besoin
+Enfin il faut restart le service 
+```bash 
+sudo service apache2 restart
+```
+
+si besoin debug avec 
+
+```bash 
+tail -f /var/log/apache2/error.log 
+```
