@@ -1,0 +1,24 @@
+body{
+	text-align: center;
+}
+
+#title_1{
+	color: red;
+}
+#title_2{
+	color: green;
+}
+#title_3{
+	color: blue;
+}
+
+
+#debug{
+	color: green;
+	background-color: black;
+	border-radius: 10px;
+}
+
+fieldset{
+	border-radius: 10px;
+}

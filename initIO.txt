@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "out" >/sys/class/gpio/gpio3/direction
+echo "out" >/sys/class/gpio/gpio50/direction
+echo "out" >/sys/class/gpio/gpio60/direction
+echo 0 > /sys/class/gpio/gpio3/value
+echo 0 > /sys/class/gpio/gpio60/value
+echo 0 > /sys/class/gpio/gpio50/value
+echo in > /sys/class/gpio/gpio48/direction
+echo out > /sys/class/gpio/gpio51/direction

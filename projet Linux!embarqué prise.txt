@@ -1,0 +1,348 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+char color[3]= {'R','V','B'};
+int etat_tube[3] = {0};
+int etat_global = 1;
+
+#define  TER  333-111
+#define TER3 333*3-333
+#define TER32 333*32-3552
+
+
+
+void GPIO_1to0(FILE* data, int delai1, int delai2){
+
+
+	fprintf(data,"%d",1);
+	fflush(data);
+	usleep(delai1);
+	fprintf(data,"%d",0);
+	fflush(data);
+	usleep(delai2);
+
+
+
+}
+
+//void variation_lumi(int *etat_tube, FILE *fp){
+//
+//	if(*etat_tube == 0){
+//		printf("led en pulastion reduite  \n");
+//		fprintf(fp,"0");
+//		fflush(fp);
+//		usleep(9000);
+//		fprintf(fp,"1");
+//
+//	} else if(*etat_tube == 1){
+//		fprintf(fp,"1");
+//	}
+//}
+
+
+void control_RVB(char R, char V, char B){
+
+
+	FILE* data = NULL;
+
+		data=fopen("/sys/class/gpio/gpio50/value", "w");
+		if(data != NULL){
+			fprintf(data,"%c", 1);
+		fclose(data);
+		}
+
+		data=fopen("/sys/class/gpio/gpio60/value", "w");
+		if(data != NULL){
+			fprintf(data,"%c", 1);
+					fclose(data);
+				}
+
+
+		data=fopen("/sys/class/gpio/gpio3/value", "w");
+				if(data != NULL){
+					fprintf(data,"%c", 1);
+					fclose(data);
+				}
+}
+
+void trans_data_433MHz(char data, FILE* fp){
+
+	if(data == '2'){
+		GPIO_1to0(fp,TER,TER3);
+		GPIO_1to0(fp,TER,TER3);
+
+	}
+	if(data == '1'){
+
+			GPIO_1to0(fp,TER,TER3);
+			GPIO_1to0(fp,TER3,TER);
+
+		}
+	if(data == '0')
+	{
+			GPIO_1to0(fp,TER3,TER);
+			GPIO_1to0(fp,TER3,TER);
+
+		}
+	if(data == 'S'){
+			GPIO_1to0(fp,TER,TER32);
+
+		}
+}
+
+
+void trans_trame_433MHz(char maison,char objet, char activation, int repetition, FILE* fp){
+
+	for(int i = 0; i<repetition; i++)
+	{
+		if(maison == 'A')
+		{
+			trans_data_433MHz('2', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+		}
+		else if(maison == 'B')
+		{
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('2', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+		}
+		else if(maison == 'C')
+		{
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('2', fp);
+			trans_data_433MHz('1', fp);
+		}
+		else if(maison == 'D')
+		{
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('2', fp);
+		}
+
+		if(objet == '1')
+		{
+			trans_data_433MHz('2', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			}
+		else if(objet == '2')
+		{
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('2', fp);
+			trans_data_433MHz('1', fp);
+		}
+		else if(objet == '3'){
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('1', fp);
+			trans_data_433MHz('2', fp);
+		}
+
+		trans_data_433MHz('1', fp);
+		trans_data_433MHz('2', fp);
+		trans_data_433MHz('1', fp);
+		trans_data_433MHz('1', fp);
+
+		if(activation == '0')
+		{
+			trans_data_433MHz('2', fp);
+		}
+		else if(activation == '1')
+		{
+			trans_data_433MHz('1', fp);
+		}
+
+		trans_data_433MHz('S', fp);
+	}
+}
+
+void commande_radio(char tube_fluo,int *etat_tube_fluo, int choix, FILE* fp){
+
+printf("%c\n",tube_fluo);
+	switch(choix){
+		case 1:
+		if(tube_fluo == 'R'){
+
+			if(etat_tube_fluo[0] == 1){
+				trans_trame_433MHz('C', '1', '0', 10, fp);
+				printf("Le tube fluorescent rouge est éteint \n");
+				etat_tube_fluo[0] = 0;
+			} else if (etat_tube_fluo[0] == 0){
+				trans_trame_433MHz('C', '1', '1', 10, fp);
+				printf("Le tube fluorescent rouge est allumé \n");
+				etat_tube_fluo[0] = 1;
+			}
+
+		}else if(tube_fluo == 'V'){
+			if(etat_tube_fluo[1] == 1){
+				trans_trame_433MHz('B', '1', '0', 10, fp);
+				printf("Le tube fluorescent vert est éteint \n");
+				etat_tube_fluo[1] = 0;
+			} else if (etat_tube_fluo[1] == 0){
+				trans_trame_433MHz('B', '1', '1', 10, fp);
+				printf("Le tube fluorescent vert est allumé \n");
+				etat_tube_fluo[1] = 1;
+			}
+
+		}else if(tube_fluo == 'B'){
+			if(etat_tube_fluo[2] == 1){
+				trans_trame_433MHz('A', '1', '0', 10, fp);
+				printf("Le tube fluorescent bleu est éteint \n");
+				etat_tube_fluo[2] = 0;
+			} else if (etat_tube_fluo[2] == 0){
+				trans_trame_433MHz('A', '1', '1', 10, fp);
+				printf("Le tube fluorescent bleu est allumé \n");
+				etat_tube_fluo[2] = 1;
+			}
+		}
+		break;
+
+		case 2:
+			trans_trame_433MHz('C', '1', '1', 10, fp);
+			trans_trame_433MHz('B', '1', '1', 10, fp);
+			trans_trame_433MHz('A', '1', '1', 10, fp);
+			etat_tube_fluo[0] = 1;
+			etat_tube_fluo[1] = 1;
+			etat_tube_fluo[2] = 1;
+			printf("Tous les tubes sont allumés \n");
+			break;
+
+		case 3:
+			trans_trame_433MHz('C', '1', '0', 10, fp);
+			trans_trame_433MHz('B', '1', '0', 10, fp);
+			trans_trame_433MHz('A', '1', '0', 10, fp);
+			etat_tube_fluo[0] = 0;
+			etat_tube_fluo[1] = 0;
+			etat_tube_fluo[2] = 0;
+			printf("Tous les tubes sont éteints \n");
+			break;
+
+	}
+
+	return;
+}
+
+
+void selection(FILE* fp){
+
+	FILE * data = NULL;
+
+	unsigned int etat;
+
+	char poussoir;
+	int index =0;
+
+			data=fopen("/sys/bus/iio/devices/iio:device0/in_voltage3_raw", "r");
+			if(data != NULL){
+			fscanf(data,"%d", &etat);
+
+					fclose(data);
+			}
+					if(etat <= 1358){
+						control_RVB('1','0','0');
+						index =0;
+					}
+					else if( 1358 < etat && etat <= 2716){
+						control_RVB('0','1','0');
+						index=1;
+					}
+					else{
+						control_RVB('0','0','1');
+						index=2;
+					}
+
+				data=fopen("/sys/class/gpio/gpio48/value", "r");
+//				char appuie = fgetc(data);
+				fscanf(data,"%c", &poussoir);
+
+//				static int time;
+//				int cas =0;
+//
+//				if (appuie == '0'){
+//						time ++;
+//				}
+				fclose(data);
+
+
+				if(poussoir == 48 && etat_global){
+					etat_global =0;
+
+					commande_radio(color[index], &etat_tube[index], 1 , fp);
+				}
+				else if(poussoir ==49 && !etat_global){
+					etat_global =1;
+
+				}
+
+}
+
+
+
+
+//void trans_trame2_433MHz(char maison, char objet, char activation, int repetition, FILE *fp){
+//
+//	char tri_0_7[16][5] = {"1111","1112","1121","1122","1211","1212","1221","1222","2111","2112","2121","2122","2211","2212","2221","2222"};
+//	char tri_7_10[8][4] = {"111","112","121","122","211","212","221","222"};
+//
+//	for(int o = 0; o<repetition; o++){
+//		for (int i=4; i<16; i++){
+//			for(int j=3 ; j<16 ; j++){
+//				for(int z=0 ; z<8 ; z++){
+////					printf("maison : ");
+//					for(int m = 0 ; m<4; m++){
+//						trans_data_433MHz(tri_0_7[i][m], fp);
+//						printf("%c ",tri_0_7[i][m]);
+//					}
+////					printf("objet ");
+//					for(int h = 0 ; h<4; h++){
+//						trans_data_433MHz(tri_0_7[j][h], fp);
+//						printf("%c ",tri_0_7[j][h]);
+//					}
+////					printf("la fameuse trame qui sors de on sait pas où:");
+//					for(int t=0; t<3;t++){
+//						trans_data_433MHz(tri_7_10[z][t], fp);
+//						printf("%c ",tri_7_10[z][t]);
+//					}
+//					trans_data_433MHz(activation, fp);
+//					printf("%c ",activation);
+//					trans_data_433MHz('S', fp);
+//					printf("S \n");
+//					usleep(100000);
+//
+//				}
+//			}
+//		}
+//	}
+//}
+
+
+
+
+int main(int argc,char **argv){
+
+	FILE* fp = NULL;
+
+	fp=fopen("/sys/class/gpio/gpio51/value", "w");
+
+	if (argc == 1){
+			while(1)
+			{
+				selection(fp);
+			}
+		}else if (argc == 5){
+			int repetition = atoi(argv[4]);
+			trans_trame_433MHz(*argv[1], *argv[2], *argv[3],repetition,fp);
+		}else{
+			printf("Mauvais nombre d'arguments.\n");
+		}
+	//trans_trame2_433MHz('0', '0', '1', 7, fp);
+
+	fclose(fp);
+
+}
