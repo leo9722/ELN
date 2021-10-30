@@ -48,3 +48,10 @@ si besoin debug avec
 ```bash 
 tail -f /var/log/apache2/error.log 
 ```
+
+## Interface Web 
+
+L'interface Contient 3 boutton permettant de d'allumer ou d'éteindre les différents tubes souhaité,
+Elle contient également une section débug afin de voir les erreurs en temps réel.
+
+![alt text](https://github.com/leo9722/IOT/blob/master/domotique.PNG)
